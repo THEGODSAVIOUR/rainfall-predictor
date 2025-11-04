@@ -6,11 +6,13 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# --- Relative Humidity Calculation ---
 def calculate_relative_humidity(air_temp, dew_point):
     specific_humidity = 6.11 * (10 ** ((7.5 * dew_point) / (237.3 + dew_point)))
     saturation_point = 6.11 * (10 ** ((7.5 * air_temp) / (237.3 + air_temp)))
     relative_humidity = (specific_humidity / saturation_point) * 100
     return relative_humidity
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -22,8 +24,12 @@ def predict():
 
     results = []
     for r in readings:
-        air_temp = float(r.get("air"))
-        dew_point = float(r.get("dew"))
+        try:
+            air_temp = float(r.get("air"))
+            dew_point = float(r.get("dew"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid input format"}), 400
+
         rh = calculate_relative_humidity(air_temp, dew_point)
         results.append({
             "air_temp": air_temp,
@@ -31,19 +37,16 @@ def predict():
             "relative_humidity": round(rh, 2)
         })
 
-    # Sort results by RH
     sorted_results = sorted(results, key=lambda x: x["relative_humidity"])
     highest = max(results, key=lambda x: x["relative_humidity"])
 
-    # Check trend
-    start_temp = float(readings[0]["air"])
-    end_temp = float(readings[-1]["air"])
-    temp_dropping = end_temp <= start_temp  # <= allows equal or dropping temps
+    # Convert inputs explicitly to float for safety
+    first_air = float(readings[0]["air"])
+    last_air = float(readings[-1]["air"])
 
-    # ✅ Better rainfall logic
-    if highest["relative_humidity"] >= 60 and temp_dropping: 
+    # ✅ Corrected rainfall logic
+    if highest["relative_humidity"] >= 60 and last_air < first_air:
         prediction = "High chance of rainfall 🌧️"
-
     else:
         prediction = "Low chance of rainfall ☀️"
 
