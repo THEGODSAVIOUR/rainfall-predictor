@@ -19,7 +19,6 @@ const RainfallForm = () => {
   const [prediction, setPrediction] = useState("");
   const [error, setError] = useState("");
 
-  // Handle number of readings (N)
   const handleNumChange = (e) => {
     const n = parseInt(e.target.value, 10);
     setNumReadings(e.target.value);
@@ -31,18 +30,15 @@ const RainfallForm = () => {
     }
   };
 
-  // Handle input change
   const handleInputChange = (index, field, value) => {
     const updated = [...readings];
     updated[index][field] = value;
     setReadings(updated);
   };
 
-  // Submit to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (readings.some((r) => !r.air || !r.dew)) {
       setError("Please fill in all temperature values.");
       return;
@@ -64,14 +60,11 @@ const RainfallForm = () => {
     setError("");
 
     try {
-      const response = await fetch(
-        "https://rainfall-backend-kh6f.onrender.com/predict",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ readings }),
-        }
-      );
+      const response = await fetch("https://rainfall-backend-kh6f.onrender.com/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ readings }),
+      });
 
       if (!response.ok) throw new Error("Backend error");
 
@@ -128,7 +121,6 @@ const RainfallForm = () => {
         )}
       </form>
 
-      {/* Results Section */}
       {results.length > 0 && (
         <div className="result-section">
           <h2>{prediction}</h2>
@@ -143,59 +135,75 @@ const RainfallForm = () => {
               </tr>
             </thead>
             <tbody>
-              {results.map((r, index) => {
-                const isHighlighted =
-                  index ===
-                  results.findIndex(
-                    (x) =>
-                      highest &&
-                      x.relative_humidity === highest.relative_humidity
-                  );
-                return (
-                  <tr key={index} className={isHighlighted ? "highlight" : ""}>
-                    <td>{index + 1}</td>
-                    <td>{r.air_temp}</td>
-                    <td>{r.dew_point}</td>
-                    <td>{r.relative_humidity}</td>
-                  </tr>
-                );
-              })}
+              {results.map((r, index) => (
+                <tr
+                  key={index}
+                  className={
+                    highest &&
+                    r.relative_humidity === highest.relative_humidity
+                      ? "highlight"
+                      : ""
+                  }
+                >
+                  <td>{index + 1}</td>
+                  <td>{r.air_temp}</td>
+                  <td>{r.dew_point}</td>
+                  <td>{r.relative_humidity}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
           {/* Chart Section */}
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
+            <h3 className="chart-title">Relative Humidity Chart</h3>
+            <ResponsiveContainer width="95%" height={350}>
               <LineChart
                 data={results.map((r, i) => ({
                   ...r,
                   reading: i + 1,
                 }))}
+                margin={{ top: 40, right: 40, left: 20, bottom: 40 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="reading"
-                  label={{
-                    value: "Reading",
-                    position: "insideBottom",
-                    dy: 10,
+                <XAxis dataKey="reading">
+                  <Label
+                    value="Reading"
+                    offset={-20}
+                    position="insideBottom"
+                    style={{
+                      textAnchor: "middle",
+                      fontSize: 14,
+                      fill: "#333",
+                    }}
+                  />
+                </XAxis>
+                <YAxis>
+                  <Label
+                    value="Humidity (%)"
+                    angle={-90}
+                    position="insideLeft"
+                    style={{
+                      textAnchor: "middle",
+                      fontSize: 14,
+                      fill: "#333",
+                    }}
+                  />
+                </YAxis>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    borderRadius: "10px",
+                    border: "1px solid #ddd",
                   }}
                 />
-                <YAxis
-                  label={{
-                    value: "Humidity (%)",
-                    angle: -90,
-                    position: "insideLeft",
-                    dx: -10,
-                  }}
-                />
-                <Tooltip />
                 <Line
                   type="monotone"
                   dataKey="relative_humidity"
                   stroke="#007bff"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={{ r: 5 }}
+                  activeDot={{ r: 7 }}
                 />
               </LineChart>
             </ResponsiveContainer>
