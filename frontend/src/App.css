@@ -1,38 +1,127 @@
+/* App.css — unified and polished for Rainfall Predictor UI */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(to bottom right, #ffe0cc, #f9bba8);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+}
+
+/* Main app wrapper */
 .App {
+  width: 100%;
+  max-width: 1200px;
   text-align: center;
-  font-family: Arial, sans-serif;
-  margin-top: 40px;
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-.input-row {
-  margin-bottom: 10px;
+/* Headings */
+h1, h2, h3, h4, h5 {
+  color: #333;
+  margin-bottom: 15px;
 }
 
-input {
-  margin: 5px;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+/* Prediction section container */
+.results-container {
+  background-color: rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  padding: 25px;
+  margin-top: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Buttons */
 button {
-  margin: 5px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 10px;
   background-color: #007bff;
   color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-.result {
-  margin-top: 30px;
-  padding: 20px;
+/* Table styles */
+table {
+  width: 90%;
+  margin: 0 auto;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  font-size: 15px;
+}
+
+th {
+  background-color: #c4f4d6;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: rgba(255, 255, 153, 0.4);
+}
+
+/* Chart container */
+.chart-container {
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin: 40px auto;
+  width: 85%;
+}
+
+/* Smooth gradient blending fix for top header area */
+#root {
+  background: linear-gradient(to bottom right, #ffecd1, #f9bba8);
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* Input and form control tweaks */
+input[type="number"],
+input[type="text"] {
   border: 1px solid #ccc;
-  border-radius: 10px;
-  display: inline-block;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 5px;
+  font-size: 15px;
+  width: 80px;
+  transition: border-color 0.3s;
+}
+
+input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.results-container, .chart-container {
+  animation: fadeIn 0.5s ease-in-out;
 }
