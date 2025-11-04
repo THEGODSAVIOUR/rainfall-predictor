@@ -31,14 +31,19 @@ def predict():
             "relative_humidity": round(rh, 2)
         })
 
+    # Sort readings by relative humidity (increasing order)
     sorted_results = sorted(results, key=lambda x: x["relative_humidity"])
     highest = max(results, key=lambda x: x["relative_humidity"])
 
-    prediction = (
-        "High chance of rainfall 🌧️"
-        if highest["relative_humidity"] > 80 and readings[-1]["air"] < readings[0]["air"]
-        else "Low chance of rainfall ☀️"
-    )
+    # ✅ Prediction Logic — Based exactly on the problem statement:
+    # High rainfall chance IF humidity is high AND temperature is dropping
+    is_temp_dropping = readings[-1]["air"] < readings[0]["air"]
+    is_high_humidity = highest["relative_humidity"] > 60  # threshold can be adjusted slightly
+
+    if is_high_humidity and is_temp_dropping:
+        prediction = "High chance of rainfall 🌧️"
+    else:
+        prediction = "Low chance of rainfall ☀️"
 
     return jsonify({
         "sorted_results": sorted_results,
