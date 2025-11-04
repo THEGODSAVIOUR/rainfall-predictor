@@ -14,12 +14,13 @@ import {
 const RainfallForm = () => {
   const [numReadings, setNumReadings] = useState("");
   const [readings, setReadings] = useState([]);
-  const [sortedResults, setSortedResults] = useState([]); // properly defined
+  const [sortedResults, setSortedResults] = useState([]);
   const [highest, setHighest] = useState(null);
   const [prediction, setPrediction] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // handle N input
+  // handle number of readings
   const handleNumChange = (e) => {
     const n = parseInt(e.target.value, 10);
     setNumReadings(e.target.value);
@@ -31,14 +32,14 @@ const RainfallForm = () => {
     }
   };
 
-  // handle input field changes
+  // handle input field updates
   const handleInputChange = (index, field, value) => {
     const updated = [...readings];
     updated[index][field] = value;
     setReadings(updated);
   };
 
-  // submit data to backend
+  // submit to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -47,7 +48,7 @@ const RainfallForm = () => {
       return;
     }
 
-    // Validation for air and dew point
+    // validation
     for (let r of readings) {
       const air = parseFloat(r.air);
       const dew = parseFloat(r.dew);
@@ -62,6 +63,7 @@ const RainfallForm = () => {
     }
 
     setError("");
+    setLoading(true);
 
     try {
       const response = await fetch(
@@ -76,13 +78,14 @@ const RainfallForm = () => {
       if (!response.ok) throw new Error("Backend error");
 
       const data = await response.json();
-
       setSortedResults(data.sorted_results || []);
       setHighest(data.highest || null);
       setPrediction(data.prediction || "");
     } catch (err) {
-      console.error(err);
-      setError("Error connecting to the backend. Please try again.");
+      console.error("Error:", err);
+      setError("Error connecting to backend. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,15 +130,25 @@ const RainfallForm = () => {
         {error && <p className="error">{error}</p>}
 
         {readings.length > 0 && (
-          <button type="submit" className="submit-btn">
-            Predict Rainfall
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? "Predicting..." : "Predict Rainfall"}
           </button>
         )}
       </form>
 
       {sortedResults.length > 0 && (
         <div className="result-section">
-          <h2>{prediction}</h2>
+          <h2
+            style={{
+              textAlign: "center",
+              color: prediction.includes("High") ? "blue" : "orange",
+              fontWeight: "bold",
+              marginTop: "10px",
+            }}
+          >
+            {prediction}
+          </h2>
+
           <h3>Sorted Relative Humidity Readings</h3>
           <table>
             <thead>
@@ -166,12 +179,17 @@ const RainfallForm = () => {
             </tbody>
           </table>
 
-          {/* Chart Section */}
+          {/* Transparent Chart Section */}
           <div
             className="chart-container"
-            style={{ backgroundColor: "transparent" }}
+            style={{
+              background: "transparent",
+              marginTop: "20px",
+              display: "flex",
+              justifyContent: "center",
+            }}
           >
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="90%" height={300}>
               <LineChart
                 data={sortedResults.map((r, i) => ({
                   reading: i + 1,
@@ -179,13 +197,17 @@ const RainfallForm = () => {
                 }))}
                 style={{ background: "transparent" }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.15)" />
                 <XAxis dataKey="reading">
                   <Label
                     value="Reading"
-                    offset={-10}
+                    offset={-5}
                     position="insideBottom"
-                    style={{ textAnchor: "middle", fontWeight: "bold" }}
+                    style={{
+                      textAnchor: "middle",
+                      fontWeight: "bold",
+                      fill: "#333",
+                    }}
                   />
                 </XAxis>
                 <YAxis>
@@ -193,7 +215,11 @@ const RainfallForm = () => {
                     value="Humidity (%)"
                     angle={-90}
                     position="insideLeft"
-                    style={{ textAnchor: "middle", fontWeight: "bold" }}
+                    style={{
+                      textAnchor: "middle",
+                      fontWeight: "bold",
+                      fill: "#333",
+                    }}
                   />
                 </YAxis>
                 <Tooltip />
@@ -202,7 +228,7 @@ const RainfallForm = () => {
                   dataKey="relative_humidity"
                   stroke="#007bff"
                   strokeWidth={2}
-                  dot={{ r: 5 }}
+                  dot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
