@@ -31,16 +31,15 @@ def predict():
             "relative_humidity": round(rh, 2)
         })
 
-    # Sort readings by relative humidity (increasing order)
+    # Sort humidity readings for display
     sorted_results = sorted(results, key=lambda x: x["relative_humidity"])
     highest = max(results, key=lambda x: x["relative_humidity"])
 
-    # ✅ Prediction Logic — Based exactly on the problem statement:
-    # High rainfall chance IF humidity is high AND temperature is dropping
-    is_temp_dropping = readings[-1]["air"] < readings[0]["air"]
-    is_high_humidity = highest["relative_humidity"] > 60  # threshold can be adjusted slightly
+    # Check if air temperature is dropping overall (latest < first)
+    temp_dropping = readings[-1]["air"] < readings[0]["air"]
 
-    if is_high_humidity and is_temp_dropping:
+    # 🌧️ Rainfall prediction logic (RH ≥ 60%)
+    if highest["relative_humidity"] >= 60 and temp_dropping:
         prediction = "High chance of rainfall 🌧️"
     else:
         prediction = "Low chance of rainfall ☀️"
