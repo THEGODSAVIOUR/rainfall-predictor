@@ -14,11 +14,12 @@ import {
 const RainfallForm = () => {
   const [numReadings, setNumReadings] = useState("");
   const [readings, setReadings] = useState([]);
-  const [results, setResults] = useState([]);
+  const [sortedResults, setSortedResults] = useState([]); // properly defined
   const [highest, setHighest] = useState(null);
   const [prediction, setPrediction] = useState("");
   const [error, setError] = useState("");
 
+  // handle N input
   const handleNumChange = (e) => {
     const n = parseInt(e.target.value, 10);
     setNumReadings(e.target.value);
@@ -30,12 +31,14 @@ const RainfallForm = () => {
     }
   };
 
+  // handle input field changes
   const handleInputChange = (index, field, value) => {
     const updated = [...readings];
     updated[index][field] = value;
     setReadings(updated);
   };
 
+  // submit data to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,6 +47,7 @@ const RainfallForm = () => {
       return;
     }
 
+    // Validation for air and dew point
     for (let r of readings) {
       const air = parseFloat(r.air);
       const dew = parseFloat(r.dew);
@@ -60,18 +64,22 @@ const RainfallForm = () => {
     setError("");
 
     try {
-      const response = await fetch("https://rainfall-backend-kh6f.onrender.com/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readings }),
-      });
+      const response = await fetch(
+        "https://rainfall-backend-kh6f.onrender.com/predict",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ readings }),
+        }
+      );
 
       if (!response.ok) throw new Error("Backend error");
 
       const data = await response.json();
-      setResults(data.sorted_results);
-      setHighest(data.highest);
-      setPrediction(data.prediction);
+
+      setSortedResults(data.sorted_results || []);
+      setHighest(data.highest || null);
+      setPrediction(data.prediction || "");
     } catch (err) {
       console.error(err);
       setError("Error connecting to the backend. Please try again.");
@@ -101,13 +109,17 @@ const RainfallForm = () => {
               type="number"
               placeholder="Air Temp (°C)"
               value={reading.air}
-              onChange={(e) => handleInputChange(index, "air", e.target.value)}
+              onChange={(e) =>
+                handleInputChange(index, "air", e.target.value)
+              }
             />
             <input
               type="number"
               placeholder="Dew Point (°C)"
               value={reading.dew}
-              onChange={(e) => handleInputChange(index, "dew", e.target.value)}
+              onChange={(e) =>
+                handleInputChange(index, "dew", e.target.value)
+              }
             />
           </div>
         ))}
@@ -121,7 +133,7 @@ const RainfallForm = () => {
         )}
       </form>
 
-      {results.length > 0 && (
+      {sortedResults.length > 0 && (
         <div className="result-section">
           <h2>{prediction}</h2>
           <h3>Sorted Relative Humidity Readings</h3>
@@ -135,7 +147,7 @@ const RainfallForm = () => {
               </tr>
             </thead>
             <tbody>
-              {results.map((r, index) => (
+              {sortedResults.map((r, index) => (
                 <tr
                   key={index}
                   className={
@@ -148,34 +160,32 @@ const RainfallForm = () => {
                   <td>{index + 1}</td>
                   <td>{r.air_temp}</td>
                   <td>{r.dew_point}</td>
-                  <td>{r.relative_humidity}</td>
+                  <td>{r.relative_humidity.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           {/* Chart Section */}
-          <div className="chart-container">
-            <h3 className="chart-title">Relative Humidity Chart</h3>
-            <ResponsiveContainer width="95%" height={350}>
+          <div
+            className="chart-container"
+            style={{ backgroundColor: "transparent" }}
+          >
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart
-                data={results.map((r, i) => ({
-                  ...r,
+                data={sortedResults.map((r, i) => ({
                   reading: i + 1,
+                  relative_humidity: r.relative_humidity,
                 }))}
-                margin={{ top: 40, right: 40, left: 20, bottom: 40 }}
+                style={{ background: "transparent" }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                 <XAxis dataKey="reading">
                   <Label
                     value="Reading"
-                    offset={-20}
+                    offset={-10}
                     position="insideBottom"
-                    style={{
-                      textAnchor: "middle",
-                      fontSize: 14,
-                      fill: "#333",
-                    }}
+                    style={{ textAnchor: "middle", fontWeight: "bold" }}
                   />
                 </XAxis>
                 <YAxis>
@@ -183,79 +193,17 @@ const RainfallForm = () => {
                     value="Humidity (%)"
                     angle={-90}
                     position="insideLeft"
-                    style={{
-                      textAnchor: "middle",
-                      fontSize: 14,
-                      fill: "#333",
-                    }}
+                    style={{ textAnchor: "middle", fontWeight: "bold" }}
                   />
                 </YAxis>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    borderRadius: "10px",
-                    border: "1px solid #ddd",
-                  }}
-                />
+                <Tooltip />
                 <Line
-                  data={{
-                    labels: sortedResults.map((_, i) => `Reading ${i + 1}`),
-                    datasets: [
-                      {
-                        label: "Relative Humidity (%)",
-                        data: sortedResults.map(r => r.relative_humidity),
-                        borderColor: "rgba(0, 123, 255, 1)",
-                        backgroundColor: "rgba(0, 123, 255, 0.2)", // transparent points
-                        tension: 0.4,
-                        pointBackgroundColor: "rgba(0, 123, 255, 1)",
-                        fill: false,
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        display: true,
-                        labels: { color: "#000", font: { size: 14 } },
-                      },
-                      title: {
-                        display: true,
-                        text: "Relative Humidity Chart",
-                        color: "#007bff",
-                        font: { size: 18, weight: "bold" },
-                        align: "center",
-                      },
-                    },
-                    scales: {
-                      x: {
-                        title: {
-                          display: true,
-                          text: "Reading",
-                          color: "#000",
-                          font: { size: 14, weight: "bold" },
-                        },
-                        grid: { display: false },
-                      },
-                      y: {
-                        title: {
-                          display: true,
-                          text: "Humidity (%)",
-                          color: "#000",
-                          font: { size: 14, weight: "bold" },
-                        },
-                        grid: { color: "rgba(0,0,0,0.1)" },
-                      },
-                    },
-                    backgroundColor: "transparent", // <-- ensures chart area transparent
-                  }}
-                  style={{
-                    height: "300px",
-                    background: "transparent", // <-- ensures transparent card area too
-                  }}
+                  type="monotone"
+                  dataKey="relative_humidity"
+                  stroke="#007bff"
+                  strokeWidth={2}
+                  dot={{ r: 5 }}
                 />
-
               </LineChart>
             </ResponsiveContainer>
           </div>
