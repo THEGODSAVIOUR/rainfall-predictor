@@ -200,3 +200,8 @@ body {
   font-weight: 500;
   fill: #333;
 }
+/* Make chart background transparent */
+.chart-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}

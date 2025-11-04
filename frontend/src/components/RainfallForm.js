@@ -198,13 +198,64 @@ const RainfallForm = () => {
                   }}
                 />
                 <Line
-                  type="monotone"
-                  dataKey="relative_humidity"
-                  stroke="#007bff"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                  activeDot={{ r: 7 }}
+                  data={{
+                    labels: sortedResults.map((_, i) => `Reading ${i + 1}`),
+                    datasets: [
+                      {
+                        label: "Relative Humidity (%)",
+                        data: sortedResults.map(r => r.relative_humidity),
+                        borderColor: "rgba(0, 123, 255, 1)",
+                        backgroundColor: "rgba(0, 123, 255, 0.2)", // transparent points
+                        tension: 0.4,
+                        pointBackgroundColor: "rgba(0, 123, 255, 1)",
+                        fill: false,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        labels: { color: "#000", font: { size: 14 } },
+                      },
+                      title: {
+                        display: true,
+                        text: "Relative Humidity Chart",
+                        color: "#007bff",
+                        font: { size: 18, weight: "bold" },
+                        align: "center",
+                      },
+                    },
+                    scales: {
+                      x: {
+                        title: {
+                          display: true,
+                          text: "Reading",
+                          color: "#000",
+                          font: { size: 14, weight: "bold" },
+                        },
+                        grid: { display: false },
+                      },
+                      y: {
+                        title: {
+                          display: true,
+                          text: "Humidity (%)",
+                          color: "#000",
+                          font: { size: 14, weight: "bold" },
+                        },
+                        grid: { color: "rgba(0,0,0,0.1)" },
+                      },
+                    },
+                    backgroundColor: "transparent", // <-- ensures chart area transparent
+                  }}
+                  style={{
+                    height: "300px",
+                    background: "transparent", // <-- ensures transparent card area too
+                  }}
                 />
+
               </LineChart>
             </ResponsiveContainer>
           </div>
