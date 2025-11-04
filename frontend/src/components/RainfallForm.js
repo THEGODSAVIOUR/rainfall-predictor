@@ -64,7 +64,7 @@ const RainfallForm = () => {
     setError("");
 
     try {
-      const response = await fetch("http://rainfall-backend-kh6f.onrender.com/predict", {
+      const response = await fetch("https://rainfall-backend-kh6f.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ readings }),
